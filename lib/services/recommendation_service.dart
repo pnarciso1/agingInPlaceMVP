@@ -8,6 +8,12 @@ class RecommendationService {
     final inputsEs = current.inputsEs;
     final inputsCt = current.inputsCt;
     final score = current.calculatedResults.scoreFinalAip;
+    
+    // Get the name, capitalizing the first letter if it exists
+    String name = current.metadata.subjectName ?? "your loved one";
+    if (name.isNotEmpty) {
+      name = name[0].toUpperCase() + name.substring(1);
+    }
 
     // --- COMPARISON LOGIC (Dynamic Changes) ---
     if (previous != null) {
@@ -38,9 +44,9 @@ class RecommendationService {
 
     // 3. Fall Risk Logic
     if (inputsFwb.fallsHistoryScore < 3 || inputsFwb.gaitSpeedScore < 3) {
-      recommendations.add(const Recommendation(
+      recommendations.add(Recommendation(
         title: "Fall Risk Assessment",
-        description: "Mobility issues detected. Consider a professional safety check (often free from Fire Dept) or a PT evaluation.",
+        description: "Mobility issues detected for $name. Consider a professional safety check (often free from Fire Dept) or a PT evaluation.",
         type: "Health",
         actionLabel: "View Resources",
       ));
@@ -58,9 +64,9 @@ class RecommendationService {
 
     // 5. Care Gap Logic
     if (inputsCt.coverageDaysPerWeek < 4 && score < 95) {
-      recommendations.add(const Recommendation(
+      recommendations.add(Recommendation(
         title: "Support Gap",
-        description: "Mom might need coverage on more days. Can family rotate shifts, or is external help an option?",
+        description: "$name might need coverage on more days. Can family rotate shifts, or is external help an option?",
         type: "Care",
         actionLabel: "Plan Schedule",
       ));
@@ -68,9 +74,9 @@ class RecommendationService {
 
     // 6. ADL Support Logic
     if (inputsFwb.adls.bathing < 2 || inputsFwb.adls.dressing < 2) {
-      recommendations.add(const Recommendation(
+      recommendations.add(Recommendation(
         title: "Daily Activity Help",
-        description: "Routine tasks like bathing are becoming difficult. Consistent help here is crucial.",
+        description: "Routine tasks like bathing are becoming difficult for $name. Consistent help here is crucial.",
         type: "Health",
         actionLabel: "View Tips",
       ));
@@ -80,9 +86,9 @@ class RecommendationService {
 
     // 7. High Score Maintenance (Encouragement)
     if (score >= 95) {
-      recommendations.add(const Recommendation(
+      recommendations.add(Recommendation(
         title: "Proactive Wellness",
-        description: "Excellent score! Focus on preventative care: regular hydration, social activities, and gentle exercise.",
+        description: "Excellent score! Help $name focus on preventative care: regular hydration, social activities, and gentle exercise.",
         type: "General",
         actionLabel: "Wellness Tips",
       ));
