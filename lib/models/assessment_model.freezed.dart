@@ -364,7 +364,15 @@ mixin _$AssessmentMetadata {
   @JsonKey(name: 'senior_id')
   String get seniorId => throw _privateConstructorUsedError;
   @JsonKey(name: 'created_at')
-  DateTime get createdAt => throw _privateConstructorUsedError;
+  DateTime get createdAt => throw _privateConstructorUsedError; // Humanizing fields
+  @JsonKey(name: 'subject_name')
+  String? get subjectName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'subject_age')
+  int? get subjectAge => throw _privateConstructorUsedError;
+  @JsonKey(name: 'subject_gender')
+  String? get subjectGender => throw _privateConstructorUsedError;
+  @JsonKey(name: 'living_situation')
+  String? get livingSituation => throw _privateConstructorUsedError;
 
   /// Serializes this AssessmentMetadata to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -387,6 +395,10 @@ abstract class $AssessmentMetadataCopyWith<$Res> {
     @JsonKey(name: 'assessment_id') String assessmentId,
     @JsonKey(name: 'senior_id') String seniorId,
     @JsonKey(name: 'created_at') DateTime createdAt,
+    @JsonKey(name: 'subject_name') String? subjectName,
+    @JsonKey(name: 'subject_age') int? subjectAge,
+    @JsonKey(name: 'subject_gender') String? subjectGender,
+    @JsonKey(name: 'living_situation') String? livingSituation,
   });
 }
 
@@ -408,6 +420,10 @@ class _$AssessmentMetadataCopyWithImpl<$Res, $Val extends AssessmentMetadata>
     Object? assessmentId = null,
     Object? seniorId = null,
     Object? createdAt = null,
+    Object? subjectName = freezed,
+    Object? subjectAge = freezed,
+    Object? subjectGender = freezed,
+    Object? livingSituation = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -423,6 +439,22 @@ class _$AssessmentMetadataCopyWithImpl<$Res, $Val extends AssessmentMetadata>
                 ? _value.createdAt
                 : createdAt // ignore: cast_nullable_to_non_nullable
                       as DateTime,
+            subjectName: freezed == subjectName
+                ? _value.subjectName
+                : subjectName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            subjectAge: freezed == subjectAge
+                ? _value.subjectAge
+                : subjectAge // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            subjectGender: freezed == subjectGender
+                ? _value.subjectGender
+                : subjectGender // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            livingSituation: freezed == livingSituation
+                ? _value.livingSituation
+                : livingSituation // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -442,6 +474,10 @@ abstract class _$$AssessmentMetadataImplCopyWith<$Res>
     @JsonKey(name: 'assessment_id') String assessmentId,
     @JsonKey(name: 'senior_id') String seniorId,
     @JsonKey(name: 'created_at') DateTime createdAt,
+    @JsonKey(name: 'subject_name') String? subjectName,
+    @JsonKey(name: 'subject_age') int? subjectAge,
+    @JsonKey(name: 'subject_gender') String? subjectGender,
+    @JsonKey(name: 'living_situation') String? livingSituation,
   });
 }
 
@@ -462,6 +498,10 @@ class __$$AssessmentMetadataImplCopyWithImpl<$Res>
     Object? assessmentId = null,
     Object? seniorId = null,
     Object? createdAt = null,
+    Object? subjectName = freezed,
+    Object? subjectAge = freezed,
+    Object? subjectGender = freezed,
+    Object? livingSituation = freezed,
   }) {
     return _then(
       _$AssessmentMetadataImpl(
@@ -477,6 +517,22 @@ class __$$AssessmentMetadataImplCopyWithImpl<$Res>
             ? _value.createdAt
             : createdAt // ignore: cast_nullable_to_non_nullable
                   as DateTime,
+        subjectName: freezed == subjectName
+            ? _value.subjectName
+            : subjectName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        subjectAge: freezed == subjectAge
+            ? _value.subjectAge
+            : subjectAge // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        subjectGender: freezed == subjectGender
+            ? _value.subjectGender
+            : subjectGender // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        livingSituation: freezed == livingSituation
+            ? _value.livingSituation
+            : livingSituation // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -489,6 +545,10 @@ class _$AssessmentMetadataImpl implements _AssessmentMetadata {
     @JsonKey(name: 'assessment_id') required this.assessmentId,
     @JsonKey(name: 'senior_id') required this.seniorId,
     @JsonKey(name: 'created_at') required this.createdAt,
+    @JsonKey(name: 'subject_name') this.subjectName,
+    @JsonKey(name: 'subject_age') this.subjectAge,
+    @JsonKey(name: 'subject_gender') this.subjectGender,
+    @JsonKey(name: 'living_situation') this.livingSituation,
   });
 
   factory _$AssessmentMetadataImpl.fromJson(Map<String, dynamic> json) =>
@@ -503,10 +563,23 @@ class _$AssessmentMetadataImpl implements _AssessmentMetadata {
   @override
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
+  // Humanizing fields
+  @override
+  @JsonKey(name: 'subject_name')
+  final String? subjectName;
+  @override
+  @JsonKey(name: 'subject_age')
+  final int? subjectAge;
+  @override
+  @JsonKey(name: 'subject_gender')
+  final String? subjectGender;
+  @override
+  @JsonKey(name: 'living_situation')
+  final String? livingSituation;
 
   @override
   String toString() {
-    return 'AssessmentMetadata(assessmentId: $assessmentId, seniorId: $seniorId, createdAt: $createdAt)';
+    return 'AssessmentMetadata(assessmentId: $assessmentId, seniorId: $seniorId, createdAt: $createdAt, subjectName: $subjectName, subjectAge: $subjectAge, subjectGender: $subjectGender, livingSituation: $livingSituation)';
   }
 
   @override
@@ -519,13 +592,29 @@ class _$AssessmentMetadataImpl implements _AssessmentMetadata {
             (identical(other.seniorId, seniorId) ||
                 other.seniorId == seniorId) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.subjectName, subjectName) ||
+                other.subjectName == subjectName) &&
+            (identical(other.subjectAge, subjectAge) ||
+                other.subjectAge == subjectAge) &&
+            (identical(other.subjectGender, subjectGender) ||
+                other.subjectGender == subjectGender) &&
+            (identical(other.livingSituation, livingSituation) ||
+                other.livingSituation == livingSituation));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, assessmentId, seniorId, createdAt);
+  int get hashCode => Object.hash(
+    runtimeType,
+    assessmentId,
+    seniorId,
+    createdAt,
+    subjectName,
+    subjectAge,
+    subjectGender,
+    livingSituation,
+  );
 
   /// Create a copy of AssessmentMetadata
   /// with the given fields replaced by the non-null parameter values.
@@ -549,6 +638,10 @@ abstract class _AssessmentMetadata implements AssessmentMetadata {
     @JsonKey(name: 'assessment_id') required final String assessmentId,
     @JsonKey(name: 'senior_id') required final String seniorId,
     @JsonKey(name: 'created_at') required final DateTime createdAt,
+    @JsonKey(name: 'subject_name') final String? subjectName,
+    @JsonKey(name: 'subject_age') final int? subjectAge,
+    @JsonKey(name: 'subject_gender') final String? subjectGender,
+    @JsonKey(name: 'living_situation') final String? livingSituation,
   }) = _$AssessmentMetadataImpl;
 
   factory _AssessmentMetadata.fromJson(Map<String, dynamic> json) =
@@ -562,7 +655,19 @@ abstract class _AssessmentMetadata implements AssessmentMetadata {
   String get seniorId;
   @override
   @JsonKey(name: 'created_at')
-  DateTime get createdAt;
+  DateTime get createdAt; // Humanizing fields
+  @override
+  @JsonKey(name: 'subject_name')
+  String? get subjectName;
+  @override
+  @JsonKey(name: 'subject_age')
+  int? get subjectAge;
+  @override
+  @JsonKey(name: 'subject_gender')
+  String? get subjectGender;
+  @override
+  @JsonKey(name: 'living_situation')
+  String? get livingSituation;
 
   /// Create a copy of AssessmentMetadata
   /// with the given fields replaced by the non-null parameter values.

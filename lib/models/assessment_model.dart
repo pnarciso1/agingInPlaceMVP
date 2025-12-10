@@ -23,6 +23,11 @@ class AssessmentMetadata with _$AssessmentMetadata {
     @JsonKey(name: 'assessment_id') required String assessmentId,
     @JsonKey(name: 'senior_id') required String seniorId,
     @JsonKey(name: 'created_at') required DateTime createdAt,
+    // Humanizing fields
+    @JsonKey(name: 'subject_name') String? subjectName,
+    @JsonKey(name: 'subject_age') int? subjectAge,
+    @JsonKey(name: 'subject_gender') String? subjectGender,
+    @JsonKey(name: 'living_situation') String? livingSituation,
   }) = _AssessmentMetadata;
 
   factory AssessmentMetadata.fromJson(Map<String, dynamic> json) =>

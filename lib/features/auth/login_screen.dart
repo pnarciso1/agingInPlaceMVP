@@ -1,3 +1,4 @@
+import 'package:aging_in_place/features/auth/widgets/score_explainer_sheet.dart';
 import 'package:aging_in_place/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -98,6 +99,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ],
               ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => const ScoreExplainerSheet(),
+                );
+              },
+              icon: const Icon(Icons.info_outline),
+              label: const Text('How is the AIP Score Calculated?'),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),

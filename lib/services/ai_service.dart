@@ -21,9 +21,11 @@ class AIService {
         ),
       );
 
+      final subjectName = currentAssessment.metadata.subjectName ?? 'the senior';
+
       // We send the current state + the new observation
       final prompt = '''
-      You are an expert Geriatric Care Manager.
+      You are an expert Geriatric Care Manager assessing "$subjectName".
       
       Current Assessment JSON:
       ${jsonEncode(currentAssessment.toJson())}
@@ -32,13 +34,14 @@ class AIService {
       "$userObservation"
 
       INSTRUCTIONS:
-      1. Update the Assessment JSON based *only* on the new observation. 
+      1. Update the Assessment JSON based *only* on the new observation for $subjectName. 
       2. Keep existing values if the observation doesn't change them.
       3. Return ONLY the valid JSON object. Do not include markdown code blocks (```json).
       
-      SCORING RULES:
-      - ADLs/IADLs: 0=Dependent, 1=Needs Assistance, 2=Independent.
-      - Gait Speed: 0=Unable to 5=Normal.
+      SCORING RULES (Be realistic, not optimistic):
+      - If the user mentions "slowing down" or "unsteady", Gait Speed should drop (e.g. to 3 or 4), not stay at 5.
+      - If they need "some help" with ADLs, score as 1 (Needs Assistance), not 2 (Independent).
+      - If they live alone and family visits are rare/inconsistent, Coverage Days/Reliability should decrease.
       - Fall Hazards: 0=Many Hazards (Bad) to 4=No Hazards (Safe).
       ''';
 

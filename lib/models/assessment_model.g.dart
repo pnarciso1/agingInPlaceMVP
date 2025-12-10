@@ -36,6 +36,10 @@ _$AssessmentMetadataImpl _$$AssessmentMetadataImplFromJson(
   assessmentId: json['assessment_id'] as String,
   seniorId: json['senior_id'] as String,
   createdAt: DateTime.parse(json['created_at'] as String),
+  subjectName: json['subject_name'] as String?,
+  subjectAge: (json['subject_age'] as num?)?.toInt(),
+  subjectGender: json['subject_gender'] as String?,
+  livingSituation: json['living_situation'] as String?,
 );
 
 Map<String, dynamic> _$$AssessmentMetadataImplToJson(
@@ -44,6 +48,10 @@ Map<String, dynamic> _$$AssessmentMetadataImplToJson(
   'assessment_id': instance.assessmentId,
   'senior_id': instance.seniorId,
   'created_at': instance.createdAt.toIso8601String(),
+  'subject_name': instance.subjectName,
+  'subject_age': instance.subjectAge,
+  'subject_gender': instance.subjectGender,
+  'living_situation': instance.livingSituation,
 };
 
 _$InputsFWBImpl _$$InputsFWBImplFromJson(Map<String, dynamic> json) =>
