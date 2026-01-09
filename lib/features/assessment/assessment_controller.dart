@@ -150,15 +150,17 @@ To give you an accurate score, please describe $updatedName's ability to:
          }
 
          // 2. CALL REAL AI
-        final updatedAssessment = await _aiService.processObservation(
+        final result = await _aiService.processObservation(
           currentAssessment: current, 
           userObservation: userMessage,
         );
 
-        if (updatedAssessment != null) {
-          current = ScoringService.calculate(updatedAssessment);
+        if (result != null) {
+          current = ScoringService.calculate(result.assessment);
           print('DEBUG: AI Updated Fields. New AIP Score: ${current.calculatedResults.scoreFinalAip}');
-          aiResponse = "Thank you. I've logged the information and updated $name's aging in place score. Is there anything more you want to record regarding your observations of $name?";
+          
+          // USE AI'S GENERATED RESPONSE
+          aiResponse = result.message;
           
           // 3. AUTO SAVE ON SUCCESS
           state = AsyncValue.data(current);

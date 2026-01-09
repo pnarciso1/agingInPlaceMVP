@@ -3,11 +3,18 @@ import 'dart:convert';
 import 'package:firebase_vertexai/firebase_vertexai.dart';
 import 'package:aging_in_place/models/assessment_model.dart';
 
+class AIProcessingResult {
+  final AssessmentModel assessment;
+  final String message;
+
+  AIProcessingResult({required this.assessment, required this.message});
+}
+
 class AIService {
   // Trying gemini-2.0-flash-exp as 1.5 is retired.
   static const String _modelId = 'gemini-2.0-flash-exp';
 
-  Future<AssessmentModel?> processObservation({
+  Future<AIProcessingResult?> processObservation({
     required AssessmentModel currentAssessment,
     required String userObservation,
     // Note: apiKey is no longer needed as Firebase handles auth internally
@@ -34,15 +41,34 @@ class AIService {
       "$userObservation"
 
       INSTRUCTIONS:
-      1. Update the Assessment JSON based *only* on the new observation for $subjectName. 
-      2. Keep existing values if the observation doesn't change them.
-      3. Return ONLY the valid JSON object. Do not include markdown code blocks (```json).
+      1. Analyze the observation for both specific incidents AND broader "ripple effects".
+      2. Update the Assessment JSON based on the new observation.
+      3. Generate a conversational `response_message` to the user.
       
-      SCORING RULES (Be realistic, not optimistic):
-      - If the user mentions "slowing down" or "unsteady", Gait Speed should drop (e.g. to 3 or 4), not stay at 5.
-      - If they need "some help" with ADLs, score as 1 (Needs Assistance), not 2 (Independent).
-      - If they live alone and family visits are rare/inconsistent, Coverage Days/Reliability should decrease.
-      - Fall Hazards: 0=Many Hazards (Bad) to 4=No Hazards (Safe).
+      CONVERSATIONAL LOGIC (The "Holistic Check"):
+      - **Incident Reported:** If the user reports a negative event (e.g., incontinence, fall, confusion), do NOT just ask about that event. Proactively ask about *related* daily functions to build a holistic picture.
+          - Example: "Dad had an accident" -> Ask: "How is he managing bathing? Is he eating well? Does he seem confused?"
+          - Example: "Mom is forgetting things" -> Ask: "Is she taking her meds? How is her sleep?"
+      - **Improvement Reported:** If the user reports a positive change (e.g., "Walking better", "Hired a caregiver"), validate it and ask how it's impacting other areas.
+          - Example: "We hired help" -> "That's great! Has that helped with her meals or housekeeping too?"
+
+      SCORING RULES:
+      - **Decline:** 
+          - If "slowing down" or "unsteady", drop Gait Speed (3-4).
+          - If needing "some help", drop ADLs to 1.
+          - If living alone/isolated, drop Coverage Reliability.
+          - Fall Hazards: 0=Many Hazards -> 4=No Hazards.
+      
+      - **RECOVERY (CRITICAL):** 
+          - If user reports NEW support (e.g., "caregiver comes 3 days/week"), INCREASE Coverage Frequency/Reliability.
+          - If functional improvement (e.g., "walking better", "therapy working"), INCREASE Gait/ADL scores.
+          - Do not keep scores artificially low if the situation is remediated.
+
+      OUTPUT FORMAT:
+      {
+        "assessment": { ... full assessment model structure ... },
+        "response_message": "Your conversational response here..."
+      }
       ''';
 
       final content = [Content.text(prompt)];
@@ -55,7 +81,19 @@ class AIService {
 
       final Map<String, dynamic> jsonMap = jsonDecode(cleanedJson);
 
-      return AssessmentModel.fromJson(jsonMap);
+      if (jsonMap.containsKey('assessment') && jsonMap.containsKey('response_message')) {
+         return AIProcessingResult(
+           assessment: AssessmentModel.fromJson(jsonMap['assessment']),
+           message: jsonMap['response_message'],
+         );
+      } else {
+        // Fallback for older format if AI hallucinates
+        return AIProcessingResult(
+          assessment: AssessmentModel.fromJson(jsonMap),
+          message: "Thank you. I've updated the assessment based on your notes.",
+        );
+      }
+      
     } catch (e) {
       print('CRITICAL AI ERROR: $e');
       return null; // Return null so we don't crash the score to 0

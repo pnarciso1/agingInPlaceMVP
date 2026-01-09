@@ -1,0 +1,20 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Allow users to read and write only their own assessments
+    match /assessments/{assessmentId} {
+      // Allow creation if the user is authenticated and the data belongs to them
+      allow create: if request.auth != null && request.resource.data.metadata.senior_id == request.auth.uid;
+      
+      // Allow read, update, delete if the existing data belongs to the user
+      allow read, update, delete: if request.auth != null && resource.data.metadata.senior_id == request.auth.uid;
+    }
+    
+    // Default deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
