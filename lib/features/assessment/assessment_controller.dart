@@ -15,23 +15,23 @@ class AssessmentController extends _$AssessmentController {
   AssessmentStep _currentStep = AssessmentStep.askingName;
 
   @override
-  Future<AssessmentModel> build() async {
+  Future<AssessmentModel> build(String seniorId) async {
     final user = ref.watch(authServiceProvider).currentUser;
     final userId = user?.uid ?? '';
     final firestoreService = ref.read(firestoreServiceProvider);
 
     // Generate a NEW ID for this specific session
     final newSessionId = DateTime.now().millisecondsSinceEpoch.toString();
-    print('DEBUG: Initializing Controller for Session ID: $newSessionId');
+    print('DEBUG: Initializing Controller for Senior: $seniorId, Session ID: $newSessionId');
 
     try {
-      final assessmentsStream = firestoreService.getAssessmentsForSenior(userId);
+      final assessmentsStream = firestoreService.getAssessmentsForSenior(seniorId);
       // Wait for the first value
       final assessments = await assessmentsStream.first;
       
       if (assessments.isNotEmpty) {
         // Found previous state! Use it as baseline.
-        print('DEBUG: Found ${assessments.length} previous assessments. Using latest as baseline.');
+        print('DEBUG: Found ${assessments.length} previous assessments for $seniorId. Using latest as baseline.');
         final latest = assessments.first;
         
         // Check if we already have demographic info
@@ -44,23 +44,26 @@ class AssessmentController extends _$AssessmentController {
         return latest.copyWith(
           metadata: latest.metadata.copyWith(
              assessmentId: newSessionId, // New Session ID
+             seniorId: seniorId,
              createdAt: DateTime.now(),
+             createdBy: userId,
           ),
         );
       }
     } catch (e) {
-      print('Error fetching previous assessment: $e');
+      print('Error fetching previous assessment for $seniorId: $e');
     }
 
     // No previous state -> Start fresh
-    print('DEBUG: No history found. Starting fresh (100).');
+    print('DEBUG: No history found for $seniorId. Starting fresh.');
     _currentStep = AssessmentStep.askingName; // Explicitly start at name
     
     final initial = AssessmentModel(
       metadata: AssessmentMetadata(
         assessmentId: newSessionId,
-        seniorId: userId,
+        seniorId: seniorId,
         createdAt: DateTime.now(),
+        createdBy: userId,
       ),
       inputsFwb: const InputsFWB(),
       inputsCt: const InputsCT(),
@@ -78,6 +81,7 @@ class AssessmentController extends _$AssessmentController {
     if (!state.hasValue) return "Error: No active assessment state.";
     
     var current = state.value!;
+    final seniorId = current.metadata.seniorId;
     String aiResponse = "";
     final name = current.metadata.subjectName ?? "the senior";
 
@@ -99,10 +103,6 @@ class AssessmentController extends _$AssessmentController {
            metadata: current.metadata.copyWith(subjectAge: age),
         );
         _currentStep = AssessmentStep.askingGender;
-        // Check gender for future pronouns if we wanted to (omitted for brevity, defaulting to name)
-        aiResponse = "Got it. What is $userMessage's gender?"; 
-        // Using "their" here as we don't know the name's possession yet, actually name is better: "What is [Name]'s gender?"
-        // But userMessage here is the AGE. So:
         final tempName = current.metadata.subjectName ?? "their";
         aiResponse = "Got it. What is $tempName's gender?";
         state = AsyncValue.data(current);
@@ -127,7 +127,6 @@ class AssessmentController extends _$AssessmentController {
         _currentStep = AssessmentStep.activeAssessment;
         final updatedName = current.metadata.subjectName ?? "the senior";
         
-        // --- NEW DETAILED PROMPT ---
         aiResponse = """
 Thank you. Now, let's establish a baseline for $updatedName.
 To give you an accurate score, please describe $updatedName's ability to:
@@ -145,7 +144,6 @@ To give you an accurate score, please describe $updatedName's ability to:
          final lowerMsg = userMessage.toLowerCase();
          if (lowerMsg == 'no' || lowerMsg == 'nope' || lowerMsg.contains('nothing else') || lowerMsg == 'that is all') {
            aiResponse = "Thank you. Remember, whenever you observe any changes in $name, feel free to tell me about it so I can update $name's score and provide suggestions to help $name age in place.";
-           // Do not call AI service. Just return close message.
            return aiResponse;
          }
 
@@ -159,7 +157,6 @@ To give you an accurate score, please describe $updatedName's ability to:
           current = ScoringService.calculate(result.assessment);
           print('DEBUG: AI Updated Fields. New AIP Score: ${current.calculatedResults.scoreFinalAip}');
           
-          // USE AI'S GENERATED RESPONSE
           aiResponse = result.message;
           
           // 3. AUTO SAVE ON SUCCESS
@@ -172,7 +169,6 @@ To give you an accurate score, please describe $updatedName's ability to:
         break;
     }
 
-    // Update State (Redundant if set above, but safe)
     if (state.value != current) {
        state = AsyncValue.data(current);
     }
@@ -184,12 +180,13 @@ To give you an accurate score, please describe $updatedName's ability to:
     if (!state.hasValue) return;
     
     final firestoreService = ref.read(firestoreServiceProvider);
+    final assessment = state.value!;
     try {
-      await firestoreService.saveAssessment(state.value!);
-      print('SUCCESS: Assessment saved to Firestore! ID: ${state.value!.metadata.assessmentId}');
+      await firestoreService.saveAssessment(assessment.metadata.seniorId, assessment);
+      print('SUCCESS: Assessment saved to Firestore for Senior: ${assessment.metadata.seniorId}!');
     } catch (e) {
       print('ERROR: Failed to save assessment: $e');
-      if (!quiet) throw e; // Only throw if explicitly requested (manual save)
+      if (!quiet) throw e; 
     }
   }
 }

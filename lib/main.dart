@@ -1,3 +1,6 @@
+import 'package:aging_in_place/core/theme.dart';
+import 'package:aging_in_place/features/auth/invite_screen.dart';
+import 'package:aging_in_place/services/firestore_service.dart';
 import 'package:aging_in_place/services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -26,8 +29,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isLoggedIn = authState.valueOrNull != null;
       final isLoggingIn = state.matchedLocation == '/';
+      final isInvitePath = state.matchedLocation.startsWith('/invite/');
 
-      if (!isLoggedIn && !isLoggingIn) return '/';
+      if (!isLoggedIn && !isLoggingIn && !isInvitePath) return '/';
       if (isLoggedIn && isLoggingIn) return '/dashboard';
 
       return null;
@@ -42,8 +46,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(
-        path: '/assessment',
-        builder: (context, state) => const ChatScreen(),
+        path: '/assessment/:seniorId',
+        builder: (context, state) => ChatScreen(seniorId: state.pathParameters['seniorId']!),
+      ),
+      GoRoute(
+        path: '/invite/:inviteId',
+        builder: (context, state) => InviteScreen(inviteId: state.pathParameters['inviteId']!),
       ),
     ],
   );
@@ -58,10 +66,7 @@ class AgingInPlaceApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'Aging In Place',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,
       routerConfig: router,
     );
   }

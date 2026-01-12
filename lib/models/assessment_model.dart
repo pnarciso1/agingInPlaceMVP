@@ -23,6 +23,7 @@ class AssessmentMetadata with _$AssessmentMetadata {
     @JsonKey(name: 'assessment_id') required String assessmentId,
     @JsonKey(name: 'senior_id') required String seniorId,
     @JsonKey(name: 'created_at') required DateTime createdAt,
+    @JsonKey(name: 'created_by') String? createdBy,
     // Humanizing fields
     @JsonKey(name: 'subject_name') String? subjectName,
     @JsonKey(name: 'subject_age') int? subjectAge,

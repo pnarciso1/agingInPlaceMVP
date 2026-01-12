@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'assessment_controller.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key});
+  final String seniorId;
+  const ChatScreen({super.key, required this.seniorId});
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -28,9 +29,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   void _checkInitialState() async {
      // Wait for controller to initialize
-     // We can't easily wait for the async build here without a listener, 
-     // but we can check if the provider has value in the build method.
-     // Instead, let's trigger a "hello" if the list is empty and state is askingName.
   }
 
   void _sendMessage() async {
@@ -45,8 +43,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
 
     // 2. Call Controller
-    // Note: We changed parseMessage to return a String response
-    final response = await ref.read(assessmentControllerProvider.notifier).parseMessage(text);
+    final response = await ref.read(assessmentControllerProvider(widget.seniorId).notifier).parseMessage(text);
 
     // 3. Add AI Response
     if (mounted) {
@@ -62,7 +59,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   void _saveAndFinish() async {
     try {
-      await ref.read(assessmentControllerProvider.notifier).saveCurrentAssessment();
+      await ref.read(assessmentControllerProvider(widget.seniorId).notifier).saveCurrentAssessment();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Assessment Saved!')),
@@ -80,12 +77,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final assessmentAsync = ref.watch(assessmentControllerProvider);
+    final assessmentAsync = ref.watch(assessmentControllerProvider(widget.seniorId));
     
     // Auto-Greeting Logic
-    ref.listen(assessmentControllerProvider, (previous, next) {
+    ref.listen(assessmentControllerProvider(widget.seniorId), (previous, next) {
        if (next.hasValue && _messages.isEmpty && !_initialized) {
-          final controller = ref.read(assessmentControllerProvider.notifier);
+          final controller = ref.read(assessmentControllerProvider(widget.seniorId).notifier);
           if (controller.currentStep == AssessmentStep.askingName) {
              setState(() {
                _messages.add({
@@ -109,80 +106,98 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFDFCFB), // Soft Warm Sand background
       appBar: AppBar(
-        title: const Text('Assessment Chat'),
+        title: const Text('Observation Chat'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
         actions: [
           // Live Score Indicator
           assessmentAsync.when(
             data: (data) {
               final currentScore = data.calculatedResults.scoreFinalAip;
+              final color = _getScoreColor(currentScore);
               return Container(
-                margin: const EdgeInsets.only(right: 16),
-                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: _getScoreColor(currentScore).withOpacity(0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: _getScoreColor(currentScore), width: 2),
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: color.withOpacity(0.3), width: 1),
                 ),
-                child: Text(
-                  currentScore.toInt().toString(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: _getScoreColor(currentScore),
-                  ),
-                ),
-              );
-            },
-            loading: () => const Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-            ),
-            error: (_, __) => const Icon(Icons.error, color: Colors.red),
-          ),
-          IconButton(
-            icon: const Icon(Icons.save),
-            tooltip: 'Save & Finish',
-            onPressed: assessmentAsync.hasValue ? _saveAndFinish : null,
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Logout?'),
-                  content: const Text('Any unsaved progress will be lost.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text('Cancel'),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(ctx).pop();
-                        ref.read(authServiceProvider).signOut();
-                      },
-                      child: const Text('Logout', style: TextStyle(color: Colors.red)),
+                    const SizedBox(width: 8),
+                    Text(
+                      currentScore.toInt().toString(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: color,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
               );
             },
-          )
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const Icon(Icons.error, color: Colors.red),
+          ),
+          IconButton(
+            icon: const Icon(Icons.check_circle_outline, color: Color(0xFF1A1F1E)),
+            tooltip: 'Save & Finish',
+            onPressed: assessmentAsync.hasValue ? _saveAndFinish : null,
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Color(0xFF1A1F1E)),
+            onSelected: (value) {
+              if (value == 'logout') {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Logout?'),
+                    content: const Text('Any unsaved progress will be lost.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          ref.read(authServiceProvider).signOut();
+                        },
+                        child: const Text('Logout', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'logout', child: Text('Logout')),
+            ],
+          ),
         ],
       ),
       body: assessmentAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF6B8E8E))),
         error: (err, stack) => Center(child: Text('Error: $err')),
         data: (assessment) {
           return Column(
             children: [
               Expanded(
                 child: _messages.isEmpty 
-                  ? const Center(child: CircularProgressIndicator()) // Waiting for auto-greeting
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF6B8E8E))) 
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                       itemCount: _messages.length,
                       itemBuilder: (context, index) {
                         final msg = _messages[index];
@@ -190,20 +205,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         return Align(
                           alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
                           child: Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                             decoration: BoxDecoration(
-                              color: isUser ? Colors.teal : Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(16).copyWith(
-                                bottomRight: isUser ? Radius.zero : const Radius.circular(16),
-                                bottomLeft: !isUser ? Radius.zero : const Radius.circular(16),
+                              color: isUser ? const Color(0xFF1A1F1E) : Colors.white,
+                              borderRadius: BorderRadius.circular(24).copyWith(
+                                bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(24),
+                                bottomLeft: !isUser ? const Radius.circular(4) : const Radius.circular(24),
                               ),
+                              boxShadow: isUser ? [] : [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                )
+                              ],
                             ),
-                            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
                             child: Text(
                               msg['text']!,
                               style: TextStyle(
-                                color: isUser ? Colors.white : Colors.black87,
+                                color: isUser ? Colors.white : const Color(0xFF1A1F1E),
+                                fontSize: 15,
+                                height: 1.4,
+                                fontWeight: isUser ? FontWeight.w500 : FontWeight.w400,
                               ),
                             ),
                           ),
@@ -212,44 +237,70 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
               ),
               if (_isTyping)
-                 const Padding(
-                   padding: EdgeInsets.all(8.0),
-                   child: LinearProgressIndicator(),
+                 Padding(
+                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                   child: Row(
+                     children: [
+                       SizedBox(
+                         width: 40,
+                         child: LinearProgressIndicator(
+                           backgroundColor: const Color(0xFF6B8E8E).withOpacity(0.1),
+                           color: const Color(0xFF6B8E8E),
+                           minHeight: 2,
+                         ),
+                       ),
+                       const SizedBox(width: 8),
+                       const Text('Analyzing...', style: TextStyle(fontSize: 12, color: Color(0xFF5A6361))),
+                     ],
+                   ),
                  ),
 
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
                 decoration: BoxDecoration(
                   color: Colors.white,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5),
+                      blurRadius: 20,
+                      offset: const Offset(0, -8),
                     )
                   ],
                 ),
                 child: Row(
                   children: [
                     Expanded(
-                      child: TextField(
-                        controller: _textController,
-                        minLines: 1, // Start small
-                        maxLines: 5, // Expand to 5 lines
-                        decoration: const InputDecoration(
-                          hintText: 'Type message...',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9F9),
+                          borderRadius: BorderRadius.circular(28),
                         ),
-                        // Note: onSubmitted only works for single-line fields usually.
-                        // We rely on the button for multi-line submission.
+                        child: TextField(
+                          controller: _textController,
+                          minLines: 1,
+                          maxLines: 4,
+                          decoration: const InputDecoration(
+                            hintText: 'Share an observation...',
+                            hintStyle: TextStyle(color: Color(0xFF5A6361), fontSize: 15),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    IconButton(
-                      onPressed: _sendMessage,
-                      icon: const Icon(Icons.send),
-                      color: Colors.teal,
+                    GestureDetector(
+                      onTap: _sendMessage,
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF1A1F1E),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.arrow_upward, color: Colors.white, size: 24),
+                      ),
                     )
                   ],
                 ),

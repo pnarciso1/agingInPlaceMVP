@@ -20,7 +20,23 @@ class ScoringService {
     // 5. Blended Score (BLS)
     final bls = _calculateBLS(ics, ct);
 
-    // 6. Final AIP Score
+    // 6. Sentinel Event Penalties (CRITICAL)
+    // We apply additional deductions for high-risk events that BLS might mask.
+    double sentinelDeduction = 0;
+    
+    // Incontinence Penalty
+    if (input.inputsFwb.adls.continence < 2) {
+      sentinelDeduction += 10; // -10 points for incontinence
+    }
+    
+    // Recent Fall Penalty
+    if (input.inputsFwb.fallsHistoryScore < 2) {
+      sentinelDeduction += 15; // -15 points for frequent falls
+    } else if (input.inputsFwb.fallsHistoryScore < 3) {
+      sentinelDeduction += 5; // -5 points for recent fall
+    }
+
+    // 7. Final AIP Score
     // Logic: The environment acts as a "container". If the container is unsafe,
     // it reduces the capacity of the entire system by a percentage.
     const k = 0.5; // Strength of environmental influence
@@ -28,7 +44,10 @@ class ScoringService {
     final penaltyPercentage = envDeficit * k; // e.g., 35 * 0.5 = 17.5%
 
     // Apply the penalty factor (e.g., 1 - 0.175 = 0.825)
-    final finalScore = bls * (1 - (penaltyPercentage / 100));
+    double finalScore = bls * (1 - (penaltyPercentage / 100));
+
+    // Apply sentinel deduction to the final result, clamped to 0
+    finalScore = (finalScore - sentinelDeduction).clamp(0.0, 100.0);
 
     return input.copyWith(
       calculatedResults: CalculatedResults(

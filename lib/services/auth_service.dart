@@ -24,6 +24,18 @@ class AuthService {
   Future<void> signOut() async {
     await _auth.signOut();
   }
+
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await user.delete();
+    }
+  }
+
+  Future<void> signInWithApple() async {
+    final appleProvider = AppleAuthProvider();
+    await _auth.signInWithProvider(appleProvider);
+  }
 }
 
 @riverpod

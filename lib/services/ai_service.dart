@@ -45,6 +45,11 @@ class AIService {
       2. Update the Assessment JSON based on the new observation.
       3. Generate a conversational `response_message` to the user.
       
+      CRITICAL SCORING PHILOSOPHY:
+      - **Negative Events = Lower Score:** If a user reports a decline (incontinence, fall, confusion, needing more help), the OVERALL AIP score must go down. 
+      - **Reporting is NOT a Bonus:** Do NOT increase "Coordination" or "Communication Rating" just because the user is reporting a problem. Reporting an incident is expected behavior, not an improvement in the care system.
+      - **Sentinel Events:** Incontinence (continence < 2), Falls (falls_history_score < 3), and Confusion are major red flags. They should trigger immediate drops in FWB.
+
       CONVERSATIONAL LOGIC (The "Holistic Check"):
       - **Incident Reported:** If the user reports a negative event (e.g., incontinence, fall, confusion), do NOT just ask about that event. Proactively ask about *related* daily functions to build a holistic picture.
           - Example: "Dad had an accident" -> Ask: "How is he managing bathing? Is he eating well? Does he seem confused?"

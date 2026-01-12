@@ -5,7 +5,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "metadata.senior_id",
+          "fieldPath": "metadata.created_by",
           "order": "ASCENDING"
         },
         {
@@ -13,8 +13,21 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "seniors",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "care_team",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []
 }
-
