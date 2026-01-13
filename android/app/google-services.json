@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "344008984280",
+    "project_id": "aginginplace-mvp",
+    "storage_bucket": "aginginplace-mvp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:344008984280:android:c303f252067e98922079ad",
+        "android_client_info": {
+          "package_name": "com.unityglobalcare.aginginplace.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZsRVDoARfhqSOi_NdmDnHbwHysmjmDyw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

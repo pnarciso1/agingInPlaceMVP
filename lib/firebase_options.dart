@@ -21,10 +21,7 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
@@ -56,13 +53,21 @@ class DefaultFirebaseOptions {
     measurementId: 'G-JHWTCMHT4K',
   );
 
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyCZsRVDoARfhqSOi_NdmDnHbwHysmjmDyw',
+    appId: '1:344008984280:android:c303f252067e98922079ad',
+    messagingSenderId: '344008984280',
+    projectId: 'aginginplace-mvp',
+    storageBucket: 'aginginplace-mvp.firebasestorage.app',
+  );
+
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyA_2eH0JyN8XlsU0QsLy3uc64QC6WfYwmg',
     appId: '1:344008984280:ios:c6de76fbdb09d4532079ad',
     messagingSenderId: '344008984280',
     projectId: 'aginginplace-mvp',
     storageBucket: 'aginginplace-mvp.firebasestorage.app',
-    iosBundleId: 'com.example.agingInPlace',
+    iosBundleId: 'com.unityglobalcare.aginginplace.app',
   );
   
   static const FirebaseOptions macos = ios; 

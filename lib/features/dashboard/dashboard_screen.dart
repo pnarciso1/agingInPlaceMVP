@@ -1,5 +1,8 @@
 import 'package:share_plus/share_plus.dart';
 import 'package:printing/printing.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/services.dart';
+import 'package:aging_in_place/core/utils/file_saver.dart';
 import 'package:aging_in_place/services/report_service.dart';
 import 'package:aging_in_place/features/assessment/assessment_controller.dart';
 import 'package:aging_in_place/features/auth/widgets/score_explainer_sheet.dart';
@@ -295,7 +298,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     try {
       final pdfBytes = await ReportService.generateMedicalReport(assessment, history);
       final filename = 'AIP_Report_${(assessment.metadata.subjectName ?? 'Senior').replaceAll(' ', '_')}.pdf';
-      await Printing.sharePdf(bytes: pdfBytes, filename: filename);
+      
+      if (kIsWeb) {
+        // Web doesn't support direct file sharing and Printing.layoutPdf can be flaky,
+        // so we use a direct browser download instead.
+        await saveFile(pdfBytes, filename);
+      } else {
+        // Robust position calculation for iOS/iPhone/iPad sharing popovers.
+        // We use the full screen context to ensure a non-zero origin.
+        final box = context.findRenderObject() as RenderBox?;
+        final rect = (box != null && box.hasSize && box.size.width > 0 && box.size.height > 0)
+            ? box.localToGlobal(Offset.zero) & box.size
+            : const Rect.fromLTWH(0, 0, 100, 100);
+
+        await Printing.sharePdf(
+          bytes: pdfBytes, 
+          filename: filename,
+          bounds: rect,
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -321,13 +342,65 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         fromUserName: user.email ?? 'Family Member',
       );
 
-      // In a real app, this would be your production URL
       final inviteUrl = 'https://aging-in-place.web.app/invite/$inviteId';
       
-      await Share.share(
-        'Join the care team for $seniorName on Aging In Place: $inviteUrl',
-        subject: 'Invitation to join Care Team',
-      );
+      if (kIsWeb) {
+        // Show a dialog for web since Share.share can be inconsistent
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Share Care Team Invite'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Copy this link to invite family members:'),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Text(inviteUrl, style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: inviteUrl));
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Link copied to clipboard!')),
+                    );
+                  },
+                  icon: const Icon(Icons.copy_rounded, size: 18),
+                  label: const Text('Copy Link'),
+                ),
+              ],
+            ),
+          );
+        }
+      } else {
+        // Robust position calculation for iOS/iPhone/iPad sharing popovers
+        final box = context.findRenderObject() as RenderBox?;
+        final rect = (box != null && box.hasSize && box.size.width > 0 && box.size.height > 0)
+            ? box.localToGlobal(Offset.zero) & box.size
+            : const Rect.fromLTWH(0, 0, 100, 100);
+
+        await Share.share(
+          'Join the care team for $seniorName on Aging In Place: $inviteUrl',
+          subject: 'Invitation to join Care Team',
+          sharePositionOrigin: rect,
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

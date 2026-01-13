@@ -9,7 +9,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.unityglobalcare.aginginplace.app</string>
+	<string>com.example.agingInPlace</string>
 	<key>PROJECT_ID</key>
 	<string>aginginplace-mvp</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:344008984280:ios:15ef222b4f16b58f2079ad</string>
+	<string>1:344008984280:ios:c6de76fbdb09d4532079ad</string>
 </dict>
 </plist>

@@ -17,28 +17,21 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _inviteCodeController = TextEditingController();
 
   bool _isLoading = false;
   bool _isSignUpMode = false; // Toggle between Login and Sign Up
   bool _agreedToTerms = false; // Checkbox state
 
-  // Hardcoded for MVP as per requirements
-  static const String _validInviteCode = "ALBERT2025";
-
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _inviteCodeController.dispose();
     super.dispose();
   }
 
   void _toggleMode() {
     setState(() {
       _isSignUpMode = !_isSignUpMode;
-      // Reset sensitive fields when switching modes
-      _inviteCodeController.clear();
       _agreedToTerms = false;
     });
   }
@@ -50,17 +43,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (_isSignUpMode) {
         // --- SIGN UP LOGIC ---
         
-        // 1. Validate Invite Code
-        if (_inviteCodeController.text.trim().toUpperCase() != _validInviteCode) {
-          throw Exception("Invalid Invitation Code.");
-        }
-
-        // 2. Validate Terms
+        // 1. Validate Terms
         if (!_agreedToTerms) {
           throw Exception("You must agree to the Terms of Service & Privacy Policy.");
         }
 
-        // 3. Create Account
+        // 2. Create Account
         await ref.read(authServiceProvider).signUp(
               _emailController.text.trim(),
               _passwordController.text.trim(),
@@ -241,22 +229,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         
                         // --- Extra Fields for Sign Up Mode ---
                         if (_isSignUpMode) ...[
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _inviteCodeController,
-                            decoration: InputDecoration(
-                              labelText: 'Invitation Code',
-                              hintText: 'Enter your exclusive code',
-                              labelStyle: const TextStyle(color: Color(0xFF5A6361), fontSize: 14),
-                              filled: true,
-                              fillColor: const Color(0xFFF8F9F9),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide.none,
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-                            ),
-                          ),
                           const SizedBox(height: 20),
                           Row(
                             children: [

@@ -1,4 +1,4 @@
-package com.example.aging_in_place
+package com.unityglobalcare.aginginplace.app
 
 import io.flutter.embedding.android.FlutterActivity
 
