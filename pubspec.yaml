@@ -1,7 +1,7 @@
 name: aging_in_place
 description: "A cross-platform app for tracking aging parents' ability to live at home."
 publish_to: 'none'
-version: 1.0.1+2
+version: 1.0.1+3
 
 environment:
   sdk: ^3.10.3
